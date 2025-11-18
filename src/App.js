@@ -39,6 +39,8 @@ import EmployeeCornerSidebar from "./EmployeeCorner/EmployeeCornerSidebar";
 import EmployeeUserIdCreated from "./EmployeeCorner/EmployeeUserIdCreated";
 import EmployeeCalendar from "./EmployeeCorner/EmployeeCalendar";
 import EmployeeLeaveApplication from "./EmployeeCorner/EmployeeLeaveApplication";
+import SalaryHeadForm from "./Master/SalaryHeadForm";
+import SalarySlipHeadList from "./Master/SalarySlipHeadList";
 
 export default function App(){
   return (
@@ -82,6 +84,9 @@ export default function App(){
       <Route path="/EmployeeUserIdCreated" element={<EmployeeUserIdCreated/>} />
       <Route path="/EmployeeCalendar" element={<EmployeeCalendar/>} />
       <Route path="/EmployeeLeaveApplication" element={<EmployeeLeaveApplication/>} />
+      <Route path="/SalaryHeadForm" element={<SalaryHeadForm/>} />
+      <Route path="/SalarySlipHeadList" element={<SalarySlipHeadList/>} />
+
      </Routes>
         <Toaster
           reverseOrder={false}
