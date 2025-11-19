@@ -14,6 +14,8 @@ const paySlipSchema = new mongoose.Schema(
   {
     employeeId: { type: String, required: true },
     employeeName: { type: String, required: true },
+    mobile: { type: String },      // new
+    email: { type: String }, 
     month: { type: String, required: true },
     year: { type: String, required: true },
 
