@@ -32,7 +32,16 @@ const Sidebar = () => {
   const menus = [
     { name: "Dashboard", path: "/Dashboard", icon: LayoutDashboard, permission: "Dashboard_View" },
     { name: "New Employee Reg", path: "/EmployeeList", icon: Users, permission: "Employee_View" },
-    { name: "Salary Fee Heads", path: "/SalarySlipHeadList", icon:  BookA, permission: " " },
+    {
+      name:"Pay Slip",
+      icon:BookA,
+      permission:"",
+      submenus:[
+        { name: "Salary Fee Heads",path: "/SalarySlipHeadList"},
+        { name: "Pay Slip Generate",path: "/PaySlipGenerateEmployeeList"},
+      ]
+
+    },
     {
       name: "Master",
       icon: Building2,

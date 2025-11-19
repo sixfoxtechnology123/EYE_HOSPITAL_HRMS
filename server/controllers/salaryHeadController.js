@@ -65,7 +65,7 @@ export const listSalaryHeads = async (req, res) => {
     const { type } = req.query; // optional ?type=EARNING
     const filter = {};
     if (type) filter.headType = type.toUpperCase();
-    const items = await SalaryHead.find(filter).sort({ createdAt: -1 }).lean();
+    const items = await SalaryHead.find(filter).sort({ createdAt: 1 }).lean();
     return res.json({ success: true, data: items });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
