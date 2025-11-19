@@ -130,7 +130,7 @@ const GeneratePaySlip = () => {
         await axios.post("http://localhost:5001/api/payslips", payload);
         toast.success("Payslip Generated Successfully!");
       }
-      navigate('/PaySlipGenerateEmployeeList', { replace: true });
+      //navigate('/PaySlipGenerateEmployeeList', { replace: true });
     } catch (err) {
       console.error(err);
       toast.error("Error saving payslip");
@@ -352,33 +352,41 @@ const GeneratePaySlip = () => {
               ))}
             </tbody>
           </table>
+              {/* Total Summary and Actions */}
+              <div className="flex justify-between items-start mb-6">
+                {/* Salary Summary Box */}
+                <div className="border-2 border-gray-400 rounded-lg p-4 w-80">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-gray-950 font-semibold">Gross Salary:</span>
+                    <span className="font-medium text-gray-800">₹{grossSalary}</span>
+                  </div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-gray-950 font-semibold">Total Deduction:</span>
+                    <span className="font-medium text-gray-800">₹{totalDeduction}</span>
+                  </div>
+                  <hr className="my-2 border-gray-400"/>
+                  <div className="flex justify-between mt-2 font-semibold text-gray-950">
+                    <span>Net Salary:</span>
+                    <span>₹{netSalary}</span>
+                  </div>
+                </div>
 
-       {/* Total Summary - Exact Simple Border */}
-          <div className="flex justify-end mb-6">
-            <div className="border-2 border-gray-400 rounded-lg p-2 w-80">
-              <div className="flex justify-between mb-2">
-                <span className="text-gray-950 font-semibold">Gross Salary:</span>
-                <span className="font-medium text-gray-800">₹{grossSalary}</span>
+                {/* Buttons */}
+                <div className="flex gap-3 ml-4">
+                  <button
+                    onClick={handleSave}
+                    className={`px-4 py-1 rounded ${editingData ? "bg-yellow-500 hover:bg-yellow-600" : "bg-blue-600 text-white"}`}
+                  >
+                    {editingData ? "Update" : "Submit"}
+                  </button>
+                  <button
+                    onClick={() => window.print()}
+                    className="px-4 py-1 rounded bg-green-500 hover:bg-green-600 text-white"
+                  >
+                    Print
+                  </button>
+                </div>
               </div>
-              <div className="flex justify-between mb-2">
-                <span className="text-gray-950 font-semibold">Total Deduction:</span>
-                <span className="font-medium text-gray-800">₹{totalDeduction}</span>
-              </div>
-              <hr className="my-2 border-gray-400"/>
-              <div className="flex justify-between mt-2 font-semibold text-gray-950">
-                <span>Net Salary:</span>
-                <span>₹{netSalary}</span>
-              </div>
-            </div>
-          </div>
-
-
-          <button
-            onClick={handleSave}
-            className={`px-6 py-2 rounded w-full ${editingData ? "bg-yellow-500 hover:bg-yellow-600" : "bg-blue-600 text-white"}`}
-          >
-            {editingData ? "Update Pay Slip" : "Save & Generate Pay Slip"}
-          </button>
         </div>
       </div>
     </div>
