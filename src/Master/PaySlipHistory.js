@@ -19,7 +19,7 @@ const PaySlipHistory = () => {
         }
       } catch (err) {
         console.error(err);
-        toast.error("Failed to fetch payslips");
+       // toast.error("Failed to fetch payslips");
       }
     };
 
@@ -67,8 +67,8 @@ const PaySlipHistory = () => {
                 <th className="border border-blue-500 px-1 py-0">Earnings</th>
                 <th className="border border-blue-500 px-1 py-0">Deductions</th>
                 <th className="border border-blue-500 px-1 py-0">Gross</th>
-                <th className="border border-blue-500 px-1 py-0">Total Deduction</th>
-                <th className="border border-blue-500 px-1 py-0">Net Salary</th>
+                <th className="border border-blue-500 px-1 py-0 w-10">Total Deduction</th>
+                <th className="border border-blue-500 px-1 py-0 w-10">Net Salary</th>
                 <th className="border border-blue-500 px-1 py-0">Action</th>
               </tr>
             </thead>
@@ -92,7 +92,7 @@ const PaySlipHistory = () => {
                         <div key={e._id}>{e.headName}: ₹{e.amount}</div>
                       ))}
                     </td>
-                    <td className="border border-blue-500 text-xs px-1 py-0">
+                    <td className="border border-blue-500 text-xs  px-1 py-0">
                       {slip.deductions.map((d) => (
                         <div key={d._id}>{d.headName}: ₹{d.amount}</div>
                       ))}

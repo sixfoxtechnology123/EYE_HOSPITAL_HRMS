@@ -29,85 +29,66 @@ const GeneratePaySlip = () => {
   const [month, setMonth] = useState(editingData?.month || location.state?.month || "");
   const [year, setYear] = useState(editingData?.year || location.state?.year || "");
 
+  const [allHeads, setAllHeads] = useState([]);
+  
   const [earningDetails, setEarningDetails] = useState(
     editingData?.earnings.map(e => ({
       headName: e.headName,
       headType: e.headType || "FIXED",
-      value: e.amount
-    })) || [{ headName: "", headType: "", value: "" }]
+      value: e.amount || 0
+    })) || [{ headName: "", headType: "FIXED", value: 0 }]
   );
 
   const [deductionDetails, setDeductionDetails] = useState(
     editingData?.deductions.map(d => ({
       headName: d.headName,
       headType: d.headType || "FIXED",
-      value: d.amount
-    })) || [{ headName: "", headType: "", value: "" }]
+      value: d.amount || 0
+    })) || [{ headName: "", headType: "FIXED", value: 0 }]
   );
 
-  const [allHeads, setAllHeads] = useState([]);
+  useEffect(() => {
+    const fetchEmployeeSalary = async () => {
+      if (!selectedEmployee?.employeeID || editingData) return;
 
-useEffect(() => {
-  const fetchEmployeeSalary = async () => {
-    if (!selectedEmployee?.employeeID || editingData) return;
+      try {
+        // Fetch latest payslip for this employee (with month/year)
+        const res = await axios.get(
+          `http://localhost:5001/api/payslips/employee/${selectedEmployee.employeeID}?month=${month}&year=${year}`
+        );
 
-    try {
-      // Fetch latest payslip for this employee (with month/year)
-      const res = await axios.get(
-        `http://localhost:5001/api/payslips/employee/${selectedEmployee.employeeID}?month=${month}&year=${year}`
-      );
+        if (res.data.success && res.data.data) {
+          const latestPayslip = res.data.data;
 
-      if (res.data.success && res.data.data) {
-      const latestPayslip = res.data.data;
+          setEarningDetails(
+            latestPayslip.earnings?.map(e => ({
+              headName: e.headName || "",
+              headType: e.headType || "FIXED",
+              value: e.value || 0
+            })) || [{ headName: "", headType: "", value: "" }]
+          );
 
-      setEarningDetails(
-        latestPayslip.earnings?.map(e => ({
-          headName: e.headName || "",  // use headName directly from DB
-          headType: e.headType || "FIXED",
-          value: e.value || 0          // use value directly from DB
-        })) || [{ headName: "", headType: "", value: "" }]
-      );
+          setDeductionDetails(
+            latestPayslip.deductions?.map(d => ({
+              headName: d.headName || "",
+              headType: d.headType || "FIXED",
+              value: d.value || 0
+            })) || [{ headName: "", headType: "", value: "" }]
+          );
 
-      setDeductionDetails(
-        latestPayslip.deductions?.map(d => ({
-          headName: d.headName || "",
-          headType: d.headType || "FIXED",
-          value: d.value || 0
-        })) || [{ headName: "", headType: "", value: "" }]
-      );
+        } else {
+          setEarningDetails([{ headName: "", headType: "", value: "" }]);
+          setDeductionDetails([{ headName: "", headType: "", value: "" }]);
+        }
 
-
-      } else {
-        setEarningDetails([{ headName: "", headType: "", value: "" }]);
-        setDeductionDetails([{ headName: "", headType: "", value: "" }]);
+      } catch (err) {
+        console.error("Error fetching payslip:", err);
+        toast.error("Failed to fetch earnings and deductions");
       }
+    };
 
-    } catch (err) {
-      console.error("Error fetching payslip:", err);
-      toast.error("Failed to fetch earnings and deductions");
-    }
-  };
-
-  fetchEmployeeSalary();
-}, [selectedEmployee, editingData, month, year]);
-
-
-// useEffect(() => {
-//   const fetchAllHeads = async () => {
-//     try {
-//       const res = await axios.get("http://localhost:5001/api/salary-heads"); // <-- your API for heads
-//       if (res.data.success) {
-//         setAllHeads(res.data.data); // populate allHeads
-//       }
-//     } catch (err) {
-//       console.error("Error fetching salary heads:", err);
-//       toast.error("Failed to fetch salary heads");
-//     }
-//   };
-
-//   fetchAllHeads();
-// }, []);
-
+    fetchEmployeeSalary();
+  }, [selectedEmployee, editingData, month, year]);
 
   const earningHeads = Array.isArray(allHeads) ? allHeads.filter(h => h.headId.startsWith("EARN")) : [];
   const deductionHeads = Array.isArray(allHeads) ? allHeads.filter(h => h.headId.startsWith("DEDUCT")) : [];
@@ -121,8 +102,8 @@ useEffect(() => {
     );
   }
 
-  const addEarningRow = () => setEarningDetails([...earningDetails, { headName: "", headType: "", value: "" }]);
-  const addDeductionRow = () => setDeductionDetails([...deductionDetails, { headName: "", headType: "", value: "" }]);
+  const addEarningRow = () => setEarningDetails([...earningDetails, { headName: "", headType: "FIXED", value: 0 }]);
+  const addDeductionRow = () => setDeductionDetails([...deductionDetails, { headName: "", headType: "FIXED", value: 0 }]);
 
   const calculateTotal = (arr) => arr.reduce((sum, item) => sum + Number(item.value || 0), 0);
   const grossSalary = calculateTotal(earningDetails);
@@ -139,12 +120,14 @@ useEffect(() => {
 
     const earningsPayload = earningDetails.map(e => ({
       headName: e.headName,
-      amount: Number(e.value) || 0,
+      type: e.headType || "FIXED",
+      amount: Number(e.value) || 0
     }));
 
     const deductionsPayload = deductionDetails.map(d => ({
       headName: d.headName,
-      amount: Number(d.value) || 0,
+      type: d.headType || "FIXED",
+      amount: Number(d.value) || 0
     }));
 
     const payload = {
@@ -158,20 +141,17 @@ useEffect(() => {
       deductions: deductionsPayload,
       grossSalary,
       totalDeduction,
-      netSalary,
+      netSalary
     };
 
     try {
       if (editingData?._id) {
-        // Update existing payslip
         await axios.put(`http://localhost:5001/api/payslips/${editingData._id}`, payload);
         toast.success("Payslip Updated Successfully!");
       } else {
-        // Create new payslip
         await axios.post("http://localhost:5001/api/payslips", payload);
         toast.success("Payslip Generated Successfully!");
       }
-      //navigate('/PaySlipGenerateEmployeeList', { replace: true });
     } catch (err) {
       console.error(err);
       toast.error("Error saving payslip");
@@ -280,7 +260,6 @@ useEffect(() => {
                       }}
                       className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 uppercase"
                     >
-                      {/* Ensure prefilled value shows even if not in list */}
                       {row.headName && !earningHeads.find(h => h.headName === row.headName) && (
                         <option value={row.headName}>{row.headName}</option>
                       )}
@@ -326,7 +305,6 @@ useEffect(() => {
                 </tr>
               ))}
             </tbody>
-
           </table>
 
           {/* DEDUCTION TABLE */}
@@ -355,7 +333,6 @@ useEffect(() => {
                       }}
                       className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 uppercase"
                     >
-                      {/* Ensure prefilled value shows even if not in list */}
                       {row.headName && !deductionHeads.find(h => h.headName === row.headName) && (
                         <option value={row.headName}>{row.headName}</option>
                       )}
@@ -401,43 +378,43 @@ useEffect(() => {
                 </tr>
               ))}
             </tbody>
-
           </table>
-              {/* Total Summary and Actions */}
-              <div className="flex justify-between items-start mb-6">
-                {/* Salary Summary Box */}
-                <div className="border-2 border-gray-400 rounded-lg p-4 w-80">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-gray-950 font-semibold">Gross Salary:</span>
-                    <span className="font-medium text-gray-800">₹{grossSalary}</span>
-                  </div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-gray-950 font-semibold">Total Deduction:</span>
-                    <span className="font-medium text-gray-800">₹{totalDeduction}</span>
-                  </div>
-                  <hr className="my-2 border-gray-400"/>
-                  <div className="flex justify-between mt-2 font-semibold text-gray-950">
-                    <span>Net Salary:</span>
-                    <span>₹{netSalary}</span>
-                  </div>
-                </div>
 
-                {/* Buttons */}
-                <div className="flex gap-3 ml-4">
-                  <button
-                    onClick={handleSave}
-                    className={`px-4 py-1 rounded ${editingData ? "bg-yellow-500 hover:bg-yellow-600" : "bg-blue-600 text-white"}`}
-                  >
-                    {editingData ? "Update" : "Submit"}
-                  </button>
-                  <button
-                    onClick={() => window.print()}
-                    className="px-4 py-1 rounded bg-green-500 hover:bg-green-600 text-white"
-                  >
-                    Print
-                  </button>
-                </div>
+          {/* Total Summary and Actions */}
+          <div className="flex justify-between items-start mb-6">
+            {/* Salary Summary Box */}
+            <div className="border-2 border-gray-400 rounded-lg p-4 w-80">
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-950 font-semibold">Gross Salary:</span>
+                <span className="font-medium text-gray-800">₹{grossSalary}</span>
               </div>
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-950 font-semibold">Total Deduction:</span>
+                <span className="font-medium text-gray-800">₹{totalDeduction}</span>
+              </div>
+              <hr className="my-2 border-gray-400"/>
+              <div className="flex justify-between mt-2 font-semibold text-gray-950">
+                <span>Net Salary:</span>
+                <span>₹{netSalary}</span>
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-3 ml-4">
+              <button
+                onClick={handleSave}
+                className={`px-4 py-1 rounded ${editingData ? "bg-yellow-500 hover:bg-yellow-600" : "bg-blue-600 text-white"}`}
+              >
+                {editingData ? "Update" : "Submit"}
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="px-4 py-1 rounded bg-green-500 hover:bg-green-600 text-white"
+              >
+                Print
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

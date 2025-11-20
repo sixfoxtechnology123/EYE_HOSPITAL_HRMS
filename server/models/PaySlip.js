@@ -1,21 +1,23 @@
 import mongoose from "mongoose";
 
 const earningSchema = new mongoose.Schema({
-  headName: String,
-  amount: Number,
+  headName: { type: String, required: true },
+  type: { type: String, required: true }, // add type
+  amount: { type: Number, required: true },
 });
 
 const deductionSchema = new mongoose.Schema({
-  headName: String,
-  amount: Number,
+  headName: { type: String, required: true },
+  type: { type: String, required: true }, // add type
+  amount: { type: Number, required: true },
 });
 
 const paySlipSchema = new mongoose.Schema(
   {
     employeeId: { type: String, required: true },
     employeeName: { type: String, required: true },
-    mobile: { type: String },      // new
-    email: { type: String }, 
+    mobile: { type: String },
+    email: { type: String },
     month: { type: String, required: true },
     year: { type: String, required: true },
 

@@ -1,8 +1,9 @@
-const PaySlip = require("../models/PaySlip");
-const Employee = require("../models/Employee");
+// paySlipController.js
+import PaySlip from "../models/PaySlip.js";
+import Employee from "../models/Employee.js";
 
 // CREATE payslip
-exports.createPaySlip = async (req, res) => {
+export const createPaySlip = async (req, res) => {
   try {
     const { employeeId } = req.body;
 
@@ -12,12 +13,14 @@ exports.createPaySlip = async (req, res) => {
       return res.status(404).json({ success: false, message: "Employee not found" });
     }
 
-    const newSlip = await PaySlip.create({
-      ...req.body,
-      employeeName: employee.firstName + " " + employee.lastName,
-      earnings: employee.earnings,
-      deductions: employee.deductions,
-    });
+const newSlip = await PaySlip.create({
+  ...req.body,
+  employeeName: employee.firstName + " " + employee.lastName,
+  // Use earnings/deductions from request if provided, else fallback to employee defaults
+  earnings: req.body.earnings || employee.earnings,
+  deductions: req.body.deductions || employee.deductions,
+});
+
 
     res.json({ success: true, data: newSlip });
   } catch (err) {
@@ -27,7 +30,7 @@ exports.createPaySlip = async (req, res) => {
 };
 
 // GET all payslips
-exports.getAllPaySlips = async (req, res) => {
+export const getAllPaySlips = async (req, res) => {
   try {
     const slips = await PaySlip.find().sort({ createdAt: 1 });
     res.json({ success: true, data: slips });
@@ -37,7 +40,7 @@ exports.getAllPaySlips = async (req, res) => {
 };
 
 // GET payslip by employee + month + year
-exports.getPaySlipByEmp = async (req, res) => {
+export const getPaySlipByEmp = async (req, res) => {
   const { employeeId, month, year } = req.query;
 
   try {
@@ -49,7 +52,7 @@ exports.getPaySlipByEmp = async (req, res) => {
 };
 
 // UPDATE payslip by ID
-exports.updatePaySlip = async (req, res) => {
+export const updatePaySlip = async (req, res) => {
   const { id } = req.params;
   try {
     const updatedSlip = await PaySlip.findByIdAndUpdate(id, req.body, { new: true });
@@ -63,7 +66,7 @@ exports.updatePaySlip = async (req, res) => {
 };
 
 // DELETE payslip by ID
-exports.deletePaySlip = async (req, res) => {
+export const deletePaySlip = async (req, res) => {
   const { id } = req.params;
   try {
     const deletedSlip = await PaySlip.findByIdAndDelete(id);
@@ -77,7 +80,7 @@ exports.deletePaySlip = async (req, res) => {
 };
 
 // GET employee by employeeID (for frontend prefill)
-exports.getEmployeeById = async (req, res) => {
+export const getEmployeeById = async (req, res) => {
   try {
     const employeeId = req.params.employeeId.toUpperCase();
 
