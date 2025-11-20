@@ -47,26 +47,67 @@ const GeneratePaySlip = () => {
 
   const [allHeads, setAllHeads] = useState([]);
 
-  // Fetch salary heads
-  useEffect(() => {
-    const fetchHeads = async () => {
-      try {
-        const res = await axios.get("http://localhost:5001/api/salary-heads/salary-list");
-        if (Array.isArray(res.data)) {
-          setAllHeads(res.data);
-        } else if (Array.isArray(res.data.data)) {
-          setAllHeads(res.data.data);
-        } else {
-          console.error("Invalid salary heads format", res.data);
-          toast.error("Invalid salary heads data");
-        }
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to fetch salary heads");
+useEffect(() => {
+  const fetchEmployeeSalary = async () => {
+    if (!selectedEmployee?.employeeID || editingData) return;
+
+    try {
+      // Fetch latest payslip for this employee (with month/year)
+      const res = await axios.get(
+        `http://localhost:5001/api/payslips/employee/${selectedEmployee.employeeID}?month=${month}&year=${year}`
+      );
+
+      if (res.data.success && res.data.data) {
+      const latestPayslip = res.data.data;
+
+      setEarningDetails(
+        latestPayslip.earnings?.map(e => ({
+          headName: e.headName || "",  // use headName directly from DB
+          headType: e.headType || "FIXED",
+          value: e.value || 0          // use value directly from DB
+        })) || [{ headName: "", headType: "", value: "" }]
+      );
+
+      setDeductionDetails(
+        latestPayslip.deductions?.map(d => ({
+          headName: d.headName || "",
+          headType: d.headType || "FIXED",
+          value: d.value || 0
+        })) || [{ headName: "", headType: "", value: "" }]
+      );
+
+
+      } else {
+        setEarningDetails([{ headName: "", headType: "", value: "" }]);
+        setDeductionDetails([{ headName: "", headType: "", value: "" }]);
       }
-    };
-    fetchHeads();
-  }, []);
+
+    } catch (err) {
+      console.error("Error fetching payslip:", err);
+      toast.error("Failed to fetch earnings and deductions");
+    }
+  };
+
+  fetchEmployeeSalary();
+}, [selectedEmployee, editingData, month, year]);
+
+
+// useEffect(() => {
+//   const fetchAllHeads = async () => {
+//     try {
+//       const res = await axios.get("http://localhost:5001/api/salary-heads"); // <-- your API for heads
+//       if (res.data.success) {
+//         setAllHeads(res.data.data); // populate allHeads
+//       }
+//     } catch (err) {
+//       console.error("Error fetching salary heads:", err);
+//       toast.error("Failed to fetch salary heads");
+//     }
+//   };
+
+//   fetchAllHeads();
+// }, []);
+
 
   const earningHeads = Array.isArray(allHeads) ? allHeads.filter(h => h.headId.startsWith("EARN")) : [];
   const deductionHeads = Array.isArray(allHeads) ? allHeads.filter(h => h.headId.startsWith("DEDUCT")) : [];
@@ -225,7 +266,7 @@ const GeneratePaySlip = () => {
                 <th className="border p-2 w-20 text-center">ACTION</th>
               </tr>
             </thead>
-            <tbody>
+           <tbody>
               {earningDetails.map((row, index) => (
                 <tr key={index} className="even:bg-gray-50">
                   <td className="border p-2 text-center">{index + 1}</td>
@@ -239,6 +280,10 @@ const GeneratePaySlip = () => {
                       }}
                       className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 uppercase"
                     >
+                      {/* Ensure prefilled value shows even if not in list */}
+                      {row.headName && !earningHeads.find(h => h.headName === row.headName) && (
+                        <option value={row.headName}>{row.headName}</option>
+                      )}
                       <option value="">SELECT</option>
                       {earningHeads.map(head => (
                         <option key={head._id} value={head.headName}>{head.headName}</option>
@@ -281,6 +326,7 @@ const GeneratePaySlip = () => {
                 </tr>
               ))}
             </tbody>
+
           </table>
 
           {/* DEDUCTION TABLE */}
@@ -309,6 +355,10 @@ const GeneratePaySlip = () => {
                       }}
                       className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 uppercase"
                     >
+                      {/* Ensure prefilled value shows even if not in list */}
+                      {row.headName && !deductionHeads.find(h => h.headName === row.headName) && (
+                        <option value={row.headName}>{row.headName}</option>
+                      )}
                       <option value="">SELECT</option>
                       {deductionHeads.map(head => (
                         <option key={head._id} value={head.headName}>{head.headName}</option>
@@ -351,6 +401,7 @@ const GeneratePaySlip = () => {
                 </tr>
               ))}
             </tbody>
+
           </table>
               {/* Total Summary and Actions */}
               <div className="flex justify-between items-start mb-6">

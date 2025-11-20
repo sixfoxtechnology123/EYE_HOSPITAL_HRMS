@@ -45,17 +45,17 @@ const AddressSchema = new mongoose.Schema({
   email: { type: String, default: "" },
 });
 
-// const EarningSchema = new mongoose.Schema({
-//   headName: { type: String, default: "" },
-//   headType: { type: String, default: "" },
-//   value: { type: Number, default: 0 },
-// });
+const EarningSchema = new mongoose.Schema({
+  headName: { type: String, default: "" },
+  headType: { type: String, default: "" },
+  value: { type: Number, default: 0 },
+});
 
-// const DeductionSchema = new mongoose.Schema({
-//   headName: { type: String, default: "" },
-//   headType: { type: String, default: "" },
-//   value: { type: Number, default: 0 },
-// });
+const DeductionSchema = new mongoose.Schema({
+  headName: { type: String, default: "" },
+  headType: { type: String, default: "" },
+  value: { type: Number, default: 0 },
+});
 
 const PayDetailsSchema = new mongoose.Schema({
   basicPay: { type: Number, default: 0 },
@@ -115,8 +115,8 @@ const EmployeeSchema = new mongoose.Schema(
     presentAddress: { type: AddressSchema, default: {} },
 
     payDetails: { type: PayDetailsSchema, default: {} },
-    // earnings: { type: [EarningSchema], default: [] },
-    // deductions: { type: [DeductionSchema], default: [] },
+    earnings: { type: [EarningSchema], default: [] },
+    deductions: { type: [DeductionSchema], default: [] },
 
     createdAt: { type: Date, default: Date.now },
   },

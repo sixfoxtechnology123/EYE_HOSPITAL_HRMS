@@ -116,7 +116,32 @@ const [deductionDetails, setDeductionDetails] = useState([
   { headName: "", headType: "", value: "" }
 ]);
 
+const [allHeads, setAllHeads] = useState([]);
+
 const navigate = useNavigate();
+  // Fetch salary heads
+  useEffect(() => {
+    const fetchHeads = async () => {
+      try {
+        const res = await axios.get("http://localhost:5001/api/salary-heads/salary-list");
+        if (Array.isArray(res.data)) {
+          setAllHeads(res.data);
+        } else if (Array.isArray(res.data.data)) {
+          setAllHeads(res.data.data);
+        } else {
+          console.error("Invalid salary heads format", res.data);
+          toast.error("Invalid salary heads data");
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to fetch salary heads");
+      }
+    };
+    fetchHeads();
+  }, []);
+
+  const earningHeads = Array.isArray(allHeads) ? allHeads.filter(h => h.headId.startsWith("EARN")) : [];
+  const deductionHeads = Array.isArray(allHeads) ? allHeads.filter(h => h.headId.startsWith("DEDUCT")) : [];
 
 // put near top of component (after state defs)
 useEffect(() => {
@@ -528,6 +553,7 @@ leaveAuthority: getEmployeeName(leaveAuthority),
                 <Input
                   type="date"
                   label="Date of Retirement"
+                  readOnly
                   value={dor}
                   onChange={setDor}
                 />
@@ -1466,40 +1492,35 @@ leaveAuthority: getEmployeeName(leaveAuthority),
                 <Input label="Aadhar No." value={aadhaarNo} onChange={setAadhaarNo} />
               </div>
 
-             <div className="flex justify-between mt-6">
-               <button
-                    onClick={() => setStep(4)}
+              {/* --- BUTTONS --- */}
+              <div className="col-span-full flex justify-between mt-4">
+                  <button
+                    onClick={() => setStep(3)}
                     className="bg-blue-700 text-white px-3 py-1 rounded hover:bg-blue-800"
                   >
                     ← Back
                   </button>
-                 <form onSubmit={handleSubmit}>
-                  {/* your full form fields here */}
-                 <button
-                    type="submit"
-                    className={`flex items-center gap-1 px-3 py-1 rounded text-white ${
-                      location.state?.employee ? "bg-yellow-500 hover:bg-yellow-600" : "bg-green-600 hover:bg-green-700"
-                    }`}
+                  <button
+                    type="button"
+                   onClick={() => setStep(5)}
+                    className="flex items-center gap-1 px-3 py-1 rounded text-white bg-sky-600 hover:bg-sky-700"
                   >
-                    <span>{location.state?.employee ? "Update" : "Submit"}</span>
+                    <span>Next</span>
                     <span>→</span>
                   </button>
-
-                </form>
-
-              </div>
-              </div>
+                </div>
+            </div>
           )}
 
           {/* ---------- STEP 5 : PAY STRUCTURE ---------- */}
-            {/* {step === 5 && (
+            {step === 5 && (
             <div className="bg-white min-h-screen shadow-lg rounded-lg p-4 w-full">
               <h3 className="text-xl font-semibold text-sky-600 col-span-full">
                 PAY STRUCTURE
-              </h3> */}
+              </h3>
 
               {/* ===== EARNING TABLE ===== */}
-              {/* <h4 className="text-lg font-semibold text-white mb-2 pl-2 bg-blue-700 rounded-sm">EARNING</h4>
+              <h4 className="text-lg font-semibold text-white mb-2 pl-2 bg-blue-700 rounded-sm">EARNING</h4>
               <table className="w-full border border-gray-300 mb-6 text-sm font-medium">
                 <thead className="bg-sky-100">
                   <tr>
@@ -1513,41 +1534,29 @@ leaveAuthority: getEmployeeName(leaveAuthority),
                 <tbody>
                   {earningDetails.map((row, index) => (
                     <tr key={index} className="even:bg-gray-50">
-                      <td className="border p-2 text-center">{index + 1}</td> */}
+                      <td className="border p-2 text-center">{index + 1}</td>
 
                       {/* Head Name */}
-                     {/* <td className="border p-2">
-                      <select
-                        value={row.headName}
-                        onChange={(e) => {
-                          const updated = [...earningDetails];
-                          updated[index].headName = e.target.value.toUpperCase();
-                          setEarningDetails(updated);
-                        }}
-                        className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 uppercase"
-                      >
-                        <option value="">SELECT</option>
-                        <option value="DA">DA</option>
-                        <option value="VDA">VDA</option>
-                        <option value="DA">DA</option>
-                        <option value="HRA">HRA</option>
-                        <option value="OTH ALW">OTH ALW</option>
-                        <option value="TIFF ALW">TIFF ALW</option>
-                        <option value="CONV">CONV</option>
-                        <option value="MEDICAL">MEDICAL</option>
-                        <option value="MISC ALW">MISC ALW</option>
-                        <option value="OVER TIME">OVER TIME</option>
-                        <option value="BONUS">BONUS</option>
-                        <option value="LEAVE ENC">LEAVE ENC</option>
-                        <option value="SAL ADJUSTMENT">SAL ADJUSTMENT</option>
-                        <option value="MOBILE ALLOWANCE">MOBILE ALLOWANCE</option>
-                        <option value="MANAGEMENT ALLOWANCE">MANAGEMENT ALLOWANCE</option>
-                      </select>
-                    </td> */}
+                     <td className="border p-2">
+                  <select
+                      value={row.headName}
+                      onChange={(e) => {
+                        const updated = [...earningDetails];
+                        updated[index].headName = e.target.value;
+                        setEarningDetails(updated);
+                      }}
+                      className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 uppercase"
+                    >
+                      <option value="">SELECT</option>
+                      {earningHeads.map(head => (
+                        <option key={head._id} value={head.headName}>{head.headName}</option>
+                      ))}
+                    </select>
+                    </td>
 
 
                       {/* Head Type */}
-                      {/* <td className="border p-2">
+                      <td className="border p-2">
                         <select
                           value={row.headType}
                           onChange={(e) => {
@@ -1561,10 +1570,10 @@ leaveAuthority: getEmployeeName(leaveAuthority),
                           <option value="FIXED">FIXED</option>
                           <option value="VARIABLE">VARIABLE</option>
                         </select>
-                      </td> */}
+                      </td>
 
                       {/* Value */}
-                      {/* <td className="border p-2">
+                      <td className="border p-2">
                         <input
                           type="number"
                           value={row.value}
@@ -1575,10 +1584,10 @@ leaveAuthority: getEmployeeName(leaveAuthority),
                           }}
                           className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150"
                         />
-                      </td> */}
+                      </td>
 
                       {/* Action Buttons */}
-                      {/* <td className="border p-2 text-center">
+                      <td className="border p-2 text-center">
                         <button
                           type="button"
                           onClick={() =>
@@ -1606,10 +1615,10 @@ leaveAuthority: getEmployeeName(leaveAuthority),
                     </tr>
                   ))}
                 </tbody>
-              </table> */}
+              </table>
 
               {/* ===== DEDUCTION TABLE ===== */}
-              {/* <h4 className="text-lg font-semibold text-white mb-2 pl-2 bg-blue-700 rounded-sm">DEDUCTION</h4>
+              <h4 className="text-lg font-semibold text-white mb-2 pl-2 bg-blue-700 rounded-sm">DEDUCTION</h4>
               <table className="w-full border border-gray-300 mb-6 text-sm font-medium">
                 <thead className="bg-sky-100">
                   <tr>
@@ -1623,40 +1632,28 @@ leaveAuthority: getEmployeeName(leaveAuthority),
                 <tbody>
                   {deductionDetails.map((row, index) => (
                     <tr key={index} className="even:bg-gray-50">
-                      <td className="border p-2 text-center">{index + 1}</td> */}
+                      <td className="border p-2 text-center">{index + 1}</td>
 
                      {/* Head Name */}
-                    {/* <td className="border p-2">
+                    <td className="border p-2">
                       <select
-                        value={row.headName}
-                        onChange={(e) => {
-                          const updated = [...deductionDetails];
-                          updated[index].headName = e.target.value.toUpperCase();
-                          setDeductionDetails(updated);
-                        }}
-                        className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 uppercase"
-                      >
-                        <option value="">SELECT</option>
-                        <option value="PF">PF</option>
-                        <option value="PROF TAX">PROF TAX</option>
-                        <option value="PF INT">PF INT</option>
-                        <option value="APF">APF</option>
-                        <option value="I TAX">I TAX</option>
-                        <option value="INSU PERM">INSU PERM</option>
-                        <option value="PF LOAN">PF LOAN</option>
-                        <option value="ESI">ESI</option>
-                        <option value="ADV">ADV</option>
-                        <option value="HRD">HRD</option>
-                        <option value="CO-OP">CO-OP</option>
-                        <option value="FURNITURE">FURNITURE</option>
-                        <option value="MISC DED">MISC DED</option>
-                        <option value="PF EMPLOYER CONTRIBUTION">PF EMPLOYER CONTRIBUTION</option>
-                        <option value="TDS">TDS</option>
-                      </select>
-                    </td> */}
+                      value={row.headName}
+                      onChange={(e) => {
+                        const updated = [...deductionDetails];
+                        updated[index].headName = e.target.value;
+                        setDeductionDetails(updated);
+                      }}
+                      className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 uppercase"
+                    >
+                      <option value="">SELECT</option>
+                      {deductionHeads.map(head => (
+                        <option key={head._id} value={head.headName}>{head.headName}</option>
+                      ))}
+                    </select>
+                    </td>
 
                       {/* Head Type */}
-                      {/* <td className="border p-2">
+                      <td className="border p-2">
                         <select
                           value={row.headType}
                           onChange={(e) => {
@@ -1670,10 +1667,10 @@ leaveAuthority: getEmployeeName(leaveAuthority),
                           <option value="FIXED">FIXED</option>
                           <option value="VARIABLE">VARIABLE</option>
                         </select>
-                      </td> */}
+                      </td>
 
                       {/* Value */}
-                      {/* <td className="border p-2">
+                      <td className="border p-2">
                         <input
                           type="number"
                           value={row.value}
@@ -1684,10 +1681,10 @@ leaveAuthority: getEmployeeName(leaveAuthority),
                           }}
                           className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150"
                         />
-                      </td> */}
+                      </td>
 
                       {/* Action Buttons */}
-                      {/* <td className="border p-2 text-center">
+                      <td className="border p-2 text-center">
                         <button
                           type="button"
                           onClick={() =>
@@ -1715,15 +1712,37 @@ leaveAuthority: getEmployeeName(leaveAuthority),
                     </tr>
                   ))}
                 </tbody>
-              </table> */}
+              </table>
 
               {/* ===== NEXT/BACK BUTTONS ===== */}
-             
-              {/* )} */}
+              <div className="flex justify-between mt-6">
+               <button
+                    onClick={() => setStep(4)}
+                    className="bg-blue-700 text-white px-3 py-1 rounded hover:bg-blue-800"
+                  >
+                    ← Back
+                  </button>
+                 <form onSubmit={handleSubmit}>
+                  {/* your full form fields here */}
+                 <button
+                    type="submit"
+                    className={`flex items-center gap-1 px-3 py-1 rounded text-white ${
+                      location.state?.employee ? "bg-yellow-500 hover:bg-yellow-600" : "bg-green-600 hover:bg-green-700"
+                    }`}
+                  >
+                    <span>{location.state?.employee ? "Update" : "Submit"}</span>
+                    <span>→</span>
+                  </button>
+
+                </form>
+
+              </div>
+              </div>
+              )}
              
         </div>
       </div>
-     </div>
+    </div>
     
   );
 };
