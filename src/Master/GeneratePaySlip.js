@@ -47,6 +47,25 @@ const GeneratePaySlip = () => {
     })) || [{ headName: "", headType: "FIXED", value: 0 }]
   );
 
+  const [monthDays, setMonthDays] = useState(editingData?.monthDays || "");
+  const [totalWorkingDays, setTotalWorkingDays] = useState(editingData?.totalWorkingDays || "");
+  const [LOP, setLOP] = useState(editingData?.LOP || "");
+  const [leaves, setLeaves] = useState(editingData?.leaves || "");
+
+// Helper to get total days in a month
+const getDaysInMonth = (monthName, year) => {
+  if (!monthName || !year) return 0;
+  const monthIndex = new Date(`${monthName} 1, ${year}`).getMonth(); // Jan = 0
+  return new Date(year, monthIndex + 1, 0).getDate(); // Last day of month
+};
+
+useEffect(() => {
+  if (month && year) {
+    const days = getDaysInMonth(month, year);
+    setMonthDays(days);
+  }
+}, [month, year]);
+
   useEffect(() => {
     const fetchEmployeeSalary = async () => {
       if (!selectedEmployee?.employeeID || editingData) return;
@@ -109,6 +128,13 @@ const GeneratePaySlip = () => {
   const grossSalary = calculateTotal(earningDetails);
   const totalDeduction = calculateTotal(deductionDetails);
   const netSalary = grossSalary - totalDeduction;
+  const md = Number(monthDays) || 0;
+  const lopDays = Number(LOP) || 0;
+  // LOP Amount = (Gross Salary / Total Calendar Days) * LOP Days
+  const lopAmount = md > 0 ? (grossSalary / md) * lopDays : 0;
+  // in-hand salary = netSalary - lopAmount
+  const inHandSalary = netSalary - lopAmount;
+
 
   const handleSave = async () => {
     if (!month || !year) {
@@ -139,19 +165,27 @@ const GeneratePaySlip = () => {
       year,
       earnings: earningsPayload,
       deductions: deductionsPayload,
-      grossSalary,
-      totalDeduction,
-      netSalary
+      grossSalary: Number(grossSalary.toFixed(2)),
+      totalDeduction: Number(totalDeduction.toFixed(2)),
+      netSalary: Number(netSalary.toFixed(2)),
+      lopAmount: Number(lopAmount.toFixed(2)),
+      inHandSalary: Number(inHandSalary.toFixed(2)),
+      monthDays,         // new
+      totalWorkingDays,  // new
+      LOP,          
+      leaves,
     };
 
     try {
       if (editingData?._id) {
         await axios.put(`http://localhost:5001/api/payslips/${editingData._id}`, payload);
         toast.success("Payslip Updated Successfully!");
+         
       } else {
         await axios.post("http://localhost:5001/api/payslips", payload);
         toast.success("Payslip Generated Successfully!");
       }
+      //navigate("/PaySlipGenerateEmployeeList");
     } catch (err) {
       console.error(err);
       toast.error("Error saving payslip");
@@ -253,12 +287,13 @@ const GeneratePaySlip = () => {
                   <td className="border p-2">
                     <select
                       value={row.headName}
+                      disabled
                       onChange={(e) => {
                         const updated = [...earningDetails];
                         updated[index].headName = e.target.value;
                         setEarningDetails(updated);
                       }}
-                      className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 uppercase"
+                      className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 uppercase cursor-not-allowed"
                     >
                       {row.headName && !earningHeads.find(h => h.headName === row.headName) && (
                         <option value={row.headName}>{row.headName}</option>
@@ -272,12 +307,13 @@ const GeneratePaySlip = () => {
                   <td className="border p-2">
                     <select
                       value={row.headType}
+                      disabled
                       onChange={(e) => {
                         const updated = [...earningDetails];
                         updated[index].headType = e.target.value.toUpperCase();
                         setEarningDetails(updated);
                       }}
-                      className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 uppercase"
+                      className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 uppercase cursor-not-allowed"
                     >
                       <option value="">SELECT</option>
                       <option value="FIXED">FIXED</option>
@@ -326,12 +362,13 @@ const GeneratePaySlip = () => {
                   <td className="border p-2">
                     <select
                       value={row.headName}
+                      disabled
                       onChange={(e) => {
                         const updated = [...deductionDetails];
                         updated[index].headName = e.target.value;
                         setDeductionDetails(updated);
                       }}
-                      className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 uppercase"
+                      className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 uppercase cursor-not-allowed"
                     >
                       {row.headName && !deductionHeads.find(h => h.headName === row.headName) && (
                         <option value={row.headName}>{row.headName}</option>
@@ -345,12 +382,13 @@ const GeneratePaySlip = () => {
                   <td className="border p-2">
                     <select
                       value={row.headType}
+                      disabled
                       onChange={(e) => {
                         const updated = [...deductionDetails];
                         updated[index].headType = e.target.value.toUpperCase();
                         setDeductionDetails(updated);
                       }}
-                      className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 uppercase"
+                      className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 uppercase cursor-not-allowed"
                     >
                       <option value="">SELECT</option>
                       <option value="FIXED">FIXED</option>
@@ -379,28 +417,83 @@ const GeneratePaySlip = () => {
               ))}
             </tbody>
           </table>
+          {/* ADDITIONAL FIELDS */}
+              <h4 className="text-lg font-semibold text-white mb-2 pl-2 bg-blue-700 rounded-sm">ADDITIONAL INFO</h4>
+              <div className="grid grid-cols-4 gap-4 mb-6 text-sm">
+                <div>
+                  <label className="font-semibold">Month Days</label>
+                 <input
+                    type="number"
+                    value={monthDays}
+                    readOnly
+                     className="font-semibold w-full pl-2 pr-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150 cursor-not-allowed"
+                  />
+
+                </div>
+                <div>
+                  <label className="font-semibold">Total Working Days</label>
+                  <input
+                    type="number"
+                    value={totalWorkingDays}
+                    onChange={(e) => setTotalWorkingDays(Number(e.target.value))}
+                     className="font-semibold w-full pl-2 pr-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150"
+                  />
+                </div>
+                <div>
+                  <label className="font-semibold">LOP</label>
+                  <input
+                    type="number"
+                    value={LOP}
+                    onChange={(e) => setLOP(Number(e.target.value))}
+                     className="font-semibold w-full pl-2 pr-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150"
+                  />
+                </div>
+                <div>
+                  <label className="font-semibold">Leaves</label>
+                  <input
+                    type="number"
+                    value={leaves}
+                    onChange={(e) => setLeaves(Number(e.target.value))}
+                     className="font-semibold w-full pl-2 pr-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150"
+                  />
+                </div>
+              </div>
+
 
           {/* Total Summary and Actions */}
           <div className="flex justify-between items-start mb-6">
-            {/* Salary Summary Box */}
             <div className="border-2 border-gray-400 rounded-lg p-4 w-80">
               <div className="flex justify-between mb-2">
-                <span className="text-gray-950 font-semibold">Gross Salary:</span>
-                <span className="font-medium text-gray-800">₹{grossSalary}</span>
+                <span className="text-gray-950 font-semibold w-40">Gross Salary:</span>
+                <span className="font-medium text-gray-800 text-right w-24">₹{grossSalary.toFixed(2)}</span>
               </div>
+
               <div className="flex justify-between mb-2">
-                <span className="text-gray-950 font-semibold">Total Deduction:</span>
-                <span className="font-medium text-gray-800">₹{totalDeduction}</span>
+                <span className="text-gray-950 font-semibold w-40">Total Deduction:</span>
+                <span className="font-medium text-gray-800 text-right w-24">₹{totalDeduction.toFixed(2)}</span>
               </div>
-              <hr className="my-2 border-gray-400"/>
+
+              <hr className="border-gray-500" />
+
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-950 font-semibold w-40">Net Salary:</span>
+                <span className="font-medium text-gray-800 text-right w-24">₹{netSalary.toFixed(2)}</span>
+              </div>
+
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-950 font-semibold w-40">LOP Deduction:</span>
+                <span className="font-medium text-gray-800 text-right w-24">₹{lopAmount.toFixed(2)}</span>
+              </div>
+
+              <hr className="border-gray-500" />
+
               <div className="flex justify-between mt-2 font-semibold text-gray-950">
-                <span>Net Salary:</span>
-                <span>₹{netSalary}</span>
+                <span className="w-40">In-Hand Total Salary:</span>
+                <span className="text-right w-24">₹{inHandSalary.toFixed(2)}</span>
               </div>
             </div>
-
             {/* Buttons */}
-            <div className="flex gap-3 ml-4">
+            <div className="flex gap-3 mt-20">
               <button
                 onClick={handleSave}
                 className={`px-4 py-1 rounded ${editingData ? "bg-yellow-500 hover:bg-yellow-600" : "bg-blue-600 text-white"}`}

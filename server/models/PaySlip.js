@@ -27,6 +27,13 @@ const paySlipSchema = new mongoose.Schema(
     grossSalary: Number,
     totalDeduction: Number,
     netSalary: Number,
+    lopAmount: Number,     // new
+    inHandSalary: Number, 
+    monthDays: { type: Number, default: 0 },
+    totalWorkingDays: { type: Number, default: 0 },
+    LOP: { type: Number, default: 0 },
+    leaves: { type: Number, default: 0 },
+
   },
   { timestamps: true }
 );
