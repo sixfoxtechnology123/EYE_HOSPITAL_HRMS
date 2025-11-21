@@ -582,14 +582,14 @@ const handleSave = async () => {
                 {mode === "edit" ? "Update" : "Submit"}
               </button>
 
-              {/* {mode !== "edit" && (
+              {mode !== "edit" && (
                 <button
                   onClick={handleDownloadPDF}
                   className="px-4 py-1 rounded bg-green-500 hover:bg-green-600 text-white"
                 >
                   Download PDF
                 </button>
-              )} */}
+              )}
             </div>
           </div>
 
@@ -604,13 +604,13 @@ const handleSave = async () => {
   style={{ fontFamily: "sans-serif", fontSize: "14px" }}
 >
   {/* HEADER */}
-  <div className="text-center mb-4">
+  <div className="text-center mb-1">
     <h1 className="text-3xl font-semibold">EYE HOSPITAL</h1>
     {/* <p className="text-base">123, Sample Road, India — 700001</p> */}
   </div>
 
   <div className="text-center mb-4">
-    <h2 className="text-2xl font-semibold underline">PAY SLIP</h2>
+    <h2 className="text-2xl font-semibold">PAY SLIP</h2>
     <p className="font-semibold text-lg">{month} - {year}</p>
   </div>
 
