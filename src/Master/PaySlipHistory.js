@@ -68,7 +68,8 @@ const PaySlipHistory = () => {
                 <th className="border border-blue-500 px-1 py-0">Deductions</th>
                 <th className="border border-blue-500 px-1 py-0">Gross</th>
                 <th className="border border-blue-500 px-1 py-0 w-10">Total Deduction</th>
-                <th className="border border-blue-500 px-1 py-0 w-10">Net Salary</th>
+                <th className="border border-blue-500 px-1 py-0 w-10">LOP</th>
+                <th className="border border-blue-500 px-1 py-0 w-10">IN-Hand</th>
                 <th className="border border-blue-500 px-1 py-0">Action</th>
               </tr>
             </thead>
@@ -99,7 +100,8 @@ const PaySlipHistory = () => {
                     </td>
                     <td className="border border-blue-500 px-1 py-0">₹{slip.grossSalary}</td>
                     <td className="border border-blue-500 px-1 py-0">₹{slip.totalDeduction}</td>
-                    <td className="border border-blue-500 px-1 py-0">₹{slip.netSalary}</td>
+                    <td className="border border-blue-500 px-1 py-0">₹{slip.lopAmount}</td>
+                    <td className="border border-blue-500 px-1 py-0">₹{slip.inHandSalary}</td>
                     <td className="border border-blue-500 px-1 py-0">
                       <div className="flex justify-center gap-2">
                         <button

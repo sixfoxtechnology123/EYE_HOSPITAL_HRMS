@@ -33,7 +33,24 @@ const updateEmployeePayDetails = async (employeeId, earnings, deductions) => {
 // CREATE Payslip
 export const createPaySlip = async (req, res) => {
   try {
-    const { employeeId, earnings, deductions, month, year, payDetails } = req.body;
+    const {
+      employeeId,
+      earnings,
+      deductions,
+      month,
+      year,
+      grossSalary,
+      totalDeduction,
+      netSalary,
+      lopAmount,
+      inHandSalary,
+      mobile,
+      email,
+      monthDays,
+      totalWorkingDays,
+      LOP,
+      leaves
+    } = req.body;
 
     if (!month || !year) return res.status(400).json({ error: "Month & Year required" });
 
@@ -52,17 +69,37 @@ export const createPaySlip = async (req, res) => {
       amount: Number(d.amount || 0)
     }));
 
+     // Check for duplicate
+    const existingPayslip = await PaySlip.findOne({
+      employeeId: employeeId.toUpperCase(),
+      month,
+      year,
+    });
+    if (existingPayslip) {
+      return res.status(400).json({ message: "Payslip already exists for this employee for this month and year." });
+    }
+
     const newSlip = await PaySlip.create({
       employeeId: employee.employeeID,
       employeeName: `${employee.salutation} ${employee.firstName} ${employee.lastName || ""}`.trim(),
+      mobile: mobile || employee.permanentAddress?.mobile || "",
+      email: email || employee.permanentAddress?.email || "",
       month,
       year,
       earnings: mappedEarnings,
       deductions: mappedDeductions,
-      payDetails: payDetails || {}
+      grossSalary: Number(grossSalary || 0),
+      totalDeduction: Number(totalDeduction || 0),
+      netSalary: Number(netSalary || 0),
+      lopAmount: Number(lopAmount || 0),
+      inHandSalary: Number(inHandSalary || 0),
+      monthDays: Number(monthDays || 0),
+      totalWorkingDays: Number(totalWorkingDays || 0),
+      LOP: Number(LOP || 0),
+      leaves: Number(leaves || 0)
     });
 
-    //  Update Employee top-level earnings & deductions
+    // Optionally update employee's top-level pay info
     await updateEmployeePayDetails(employee._id, mappedEarnings, mappedDeductions);
 
     res.json({ success: true, data: newSlip });
@@ -77,7 +114,23 @@ export const createPaySlip = async (req, res) => {
 export const updatePaySlip = async (req, res) => {
   try {
     const { payslipId } = req.params;
-    const { earnings, deductions, payDetails, month, year } = req.body;
+    const {
+      earnings,
+      deductions,
+      month,
+      year,
+      grossSalary,
+      totalDeduction,
+      netSalary,
+      lopAmount,
+      inHandSalary,
+      mobile,
+      email,
+      monthDays,
+      totalWorkingDays,
+      LOP,
+      leaves
+    } = req.body;
 
     if (!month || !year) return res.status(400).json({ error: "Month & Year required" });
 
@@ -91,20 +144,31 @@ export const updatePaySlip = async (req, res) => {
     }));
 
     const mappedDeductions = deductions.map(d => ({
-      headName: d.headName, // ✅ fixed: use d instead of e
+      headName: d.headName,
       type: d.type || "FIXED",
       amount: Number(d.amount || 0)
     }));
 
+    // Update fields
     payslip.earnings = mappedEarnings;
     payslip.deductions = mappedDeductions;
-    payslip.payDetails = payDetails || payslip.payDetails;
     payslip.month = month;
     payslip.year = year;
+    payslip.mobile = mobile || payslip.mobile;
+    payslip.email = email || payslip.email;
+    payslip.grossSalary = Number(grossSalary || 0);
+    payslip.totalDeduction = Number(totalDeduction || 0);
+    payslip.netSalary = Number(netSalary || 0);
+    payslip.lopAmount = Number(lopAmount || 0);
+    payslip.inHandSalary = Number(inHandSalary || 0);
+    payslip.monthDays = Number(monthDays || 0);
+    payslip.totalWorkingDays = Number(totalWorkingDays || 0);
+    payslip.LOP = Number(LOP || 0);
+    payslip.leaves = Number(leaves || 0);
 
     await payslip.save();
 
-    // ✅ Update Employee top-level earnings & deductions
+    // Optionally update employee's top-level pay info
     await updateEmployeePayDetails(payslip.employeeId, mappedEarnings, mappedDeductions);
 
     res.json({ success: true, data: payslip });
@@ -114,9 +178,6 @@ export const updatePaySlip = async (req, res) => {
     res.status(500).json({ error: err.message || "Failed to update payslip" });
   }
 };
-
-
-
 
 
 // GET all payslips
@@ -169,5 +230,24 @@ export const getEmployeeById = async (req, res) => {
   } catch (err) {
     console.error("Error fetching employee:", err);
     res.status(500).json({ error: "Server Error" });
+  }
+};
+export const getLatestPayslipByEmployee = async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+
+    const latestPayslip = await PaySlip.find({ employeeId: employeeId.toUpperCase() })
+      .sort({ createdAt: -1 }) // latest first
+      .limit(1)
+      .lean(); // return plain JS object
+
+    if (!latestPayslip || latestPayslip.length === 0) {
+      return res.status(404).json({ error: "No payslip found for this employee" });
+    }
+
+    res.json(latestPayslip[0]);
+  } catch (err) {
+    console.error("Error fetching latest payslip:", err);
+    res.status(500).json({ error: err.message });
   }
 };

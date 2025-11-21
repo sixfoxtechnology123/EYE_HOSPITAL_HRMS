@@ -4,8 +4,31 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../component/Sidebar";
 import toast from "react-hot-toast";
 import BackButton from "../component/BackButton";
+import { FaEdit, FaFileInvoiceDollar, FaPrint } from "react-icons/fa";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+
 
 const PaySlipGenerateEmployeeList = () => {
+  
+const [selectedEmployee, setSelectedEmployee] = useState(null); // selected employee for printing
+const [month, setMonth] = useState("");
+const [year, setYear] = useState("");
+
+const [earningDetails, setEarningDetails] = useState([]);
+const [deductionDetails, setDeductionDetails] = useState([]);
+
+const [grossSalary, setGrossSalary] = useState(0);
+const [totalDeduction, setTotalDeduction] = useState(0);
+const [netSalary, setNetSalary] = useState(0);
+const [lopAmount, setLopAmount] = useState(0);
+const [inHandSalary, setInHandSalary] = useState(0);
+
+const [totalWorkingDays, setTotalWorkingDays] = useState(0);
+const [LOP, setLOP] = useState(0);
+const [leaves, setLeaves] = useState(0);
+
+
   const [employees, setEmployees] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState(() => {
   return localStorage.getItem("selectedMonth") || "";
@@ -19,7 +42,50 @@ const [selectedYear, setSelectedYear] = useState(() => {
   "July","August","September","October","November","December"
 ];
 
-  const navigate = useNavigate();
+const navigate = useNavigate();
+
+const fetchLatestPayslip = async (emp) => {
+  try {
+    const res = await axios.get(`http://localhost:5001/api/payslips/latest/${emp.employeeID}`);
+    const payslip = res.data;
+
+    // Map DB structure to print-friendly format
+    const mappedEarnings = (payslip.earnings || []).map(e => ({
+      headName: e.headName,
+      headType: e.type || "FIXED",
+      value: Number(e.amount || 0),
+    }));
+
+    const mappedDeductions = (payslip.deductions || []).map(d => ({
+      headName: d.headName,
+      headType: d.type || "FIXED",
+      value: Number(d.amount || 0),
+    }));
+
+    setSelectedEmployee({
+      ...emp,
+      employeeName: payslip.employeeName, // for display
+    });
+    setMonth(payslip.month);
+    setYear(payslip.year);
+    setEarningDetails(mappedEarnings);
+    setDeductionDetails(mappedDeductions);
+    setGrossSalary(Number(payslip.grossSalary || 0));
+    setTotalDeduction(Number(payslip.totalDeduction || 0));
+    setNetSalary(Number(payslip.netSalary || 0));
+    setLopAmount(Number(payslip.lopAmount || 0));
+    setInHandSalary(Number(payslip.inHandSalary || 0));
+    setTotalWorkingDays(Number(payslip.totalWorkingDays || 0));
+    setLOP(Number(payslip.LOP || 0));
+    setLeaves(Number(payslip.leaves || 0));
+
+    return payslip;
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to fetch latest payslip");
+  }
+};
+
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -34,7 +100,63 @@ const [selectedYear, setSelectedYear] = useState(() => {
     fetchEmployees();
   }, []);
 
+  const TwoColRow = ({ label1, value1, label2, value2 }) => (
+     <div className="flex justify-between mb-1 text-xl"> {/* text-xl ensures all text is large */}
+    {label1 && (
+      <div className="flex flex-1">
+        <div className="min-w-[170px]">{label1}</div>
+        <div className="font-semibold">: {value1 || "N/A"}</div>
+      </div>
+    )}
+      {label2 && (
+        <div className="flex flex-1">
+          <div className="min-w-[80px] font-semibold">{label2}</div>
+          <div className="font-semibold">: {value2 || "N/A"}</div>
+        </div>
+      )}
+    </div>
+  );
+
+  const handleDownloadPDF = async () => {
+  const el = document.getElementById("print-section");
+
+  if (!el) {
+    console.error("print-section not found");
+    return;
+  }
+
+  // Make element visible and apply print-like styles for screen
+  el.style.display = "block";
+  el.style.position = "absolute";
+  el.style.top = "0";
+  el.style.left = "0";
+  el.style.width = "100%";
+  el.style.background = "white"; // same as print background
+
+  // Wait for styles to apply
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  // Capture the element
+  const canvas = await html2canvas(el, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: true,
+  });
+
+  const imgData = canvas.toDataURL("image/png");
+  const pdf = new jsPDF("p", "mm", "a4");
+
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+  pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+  pdf.save(`Payslip-${selectedEmployee.employeeID}.pdf`);
+
+  // Restore original display
+  el.style.display = "";
+};
   return (
+    <>
     <div className="flex min-h-screen flex-col md:flex-row">
       <Sidebar />
       <div className="flex-1 overflow-y-auto p-3">
@@ -95,27 +217,63 @@ const [selectedYear, setSelectedYear] = useState(() => {
                     </td>
                     <td className="border border-blue-500 px-2 py-1">{emp.permanentAddress?.mobile || "-"}</td>
                     <td className="border border-blue-500 px-2 py-1">{emp.permanentAddress?.email || "-"}</td>
-
-                    <td className="border border-blue-500 px-2 py-1">
-                      <button
-                     onClick={() =>
-                  navigate("/GeneratePaySlip", {
+                    
+              <td className="border border-blue-500 py-1">
+                  <div className="flex justify-center gap-2">
+                {/* Edit Button */}
+                <button
+                  onClick={() =>
+                    navigate("/GeneratePaySlip", {
                       state: {
                         selectedEmployee: emp,
-                       month: selectedMonth ? monthNames[Number(selectedMonth.split("-")[1]) - 1] : "",
-                        year: selectedMonth ? selectedMonth.split("-")[0] : ""
-
-                      }
+                        month: selectedMonth
+                          ? monthNames[Number(selectedMonth.split("-")[1]) - 1]
+                          : "",
+                        year: selectedMonth ? selectedMonth.split("-")[0] : "",
+                        mode: "edit", // pass mode to show only update button
+                      },
                     })
+                  }
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  <FaEdit />
+                </button>
 
-                      }
+                {/* Generate Button */}
+                <button
+                  onClick={() =>
+                    navigate("/GeneratePaySlip", {
+                      state: {
+                        selectedEmployee: emp,
+                        month: selectedMonth
+                          ? monthNames[Number(selectedMonth.split("-")[1]) - 1]
+                          : "",
+                        year: selectedMonth ? selectedMonth.split("-")[0] : "",
+                        mode: "generate", // pass mode to show only download button
+                      },
+                    })
+                  }
+                   className="text-green-600 hover:text-green-800"
+                  //className="bg-green-600 hover:bg-green-700 text-white px-2 py-0 rounded text-sm"
+                >
+                  <FaFileInvoiceDollar />
+                 
+                </button>
 
-                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
-                      >
-                        Generate Pay Slip
-                      </button>
-                    </td>
-                  </tr>
+             <button
+              onClick={async () => {
+                await fetchLatestPayslip(emp); // fetch latest payslip
+                handleDownloadPDF();           // then generate PDF
+              }}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              <FaPrint />
+            </button>
+
+
+            </div>
+              </td>
+              </tr>
                 ))
               ) : (
                 <tr>
@@ -130,6 +288,120 @@ const [selectedYear, setSelectedYear] = useState(() => {
         </div>
       </div>
     </div>
+
+{selectedEmployee && (
+  <div
+    id="print-section"
+    className="hidden print:block border-2 border-black w-[210mm] max-w-full mx-auto py-4 px-6"
+    style={{ fontFamily: "sans-serif", fontSize: "14px" }}
+  >
+  {/* HEADER */}
+  <div className="text-center mb-4">
+    <h1 className="text-3xl font-semibold">EYE HOSPITAL</h1>
+    {/* <p className="text-base">123, Sample Road, India — 700001</p> */}
+    <p className="text-base">Address</p>
+  </div>
+
+  <div className="text-center mb-4">
+    <h2 className="text-2xl font-semibold underline">PAY SLIP</h2>
+    <p className="font-semibold text-lg">{month} - {year}</p>
+  </div>
+
+
+<div className="border border-black p-2 mb-4">
+<div className="mb-4 grid grid-cols-3 gap-4 items-start text-xl">
+  {/* Left Section (2/3) */}
+  <div className="col-span-2 space-y-2">
+    <TwoColRow label1="Employee Name" value1={`${selectedEmployee.salutation} ${selectedEmployee.firstName} ${selectedEmployee.middleName} ${selectedEmployee.lastName}`} />
+    <TwoColRow label1="Employee ID" value1={selectedEmployee.employeeID} />
+    <TwoColRow label1="Designation" value1={selectedEmployee.designationName} />
+    <TwoColRow label1="Date of Joining" value1={selectedEmployee.doj} />
+    <TwoColRow label1="Pay Month" value1={`${month} ${year}`} />
+  </div>
+
+  {/* Right Section (1/3) */}
+  <div className="col-span-1 border border-gray-300 rounded p-4 bg-green-50 text-left">
+    <p className="text-2xl font-semibold">₹{inHandSalary.toFixed(2)}</p>
+    <p className="text-lg text-gray-800">Total Payable</p>
+    <div className="mt-2 text-left space-y-1">
+      <TwoColRow label1="Working Days" value1={totalWorkingDays} />
+      <TwoColRow label1="LOP" value1={LOP} />
+      <TwoColRow label1="Leaves" value1={leaves} />
+    </div>
+  </div>
+</div>
+</div>
+
+
+  {/* EARNINGS + DEDUCTIONS */}
+  <div className="grid grid-cols-2 gap-4 mb-4">
+    {/* Earnings */}
+    <div className="border border-black p-2">
+      <h3 className="text-xl font-semibold mb-2">Earnings</h3>
+      <table className="w-full border border-black text-lg">
+        <thead>
+          <tr className="bg-gray-200 text-center">
+            <th className="border p-1">SL No</th>
+            <th className="border p-1">Head</th>
+            <th className="border p-1">Type</th>
+            <th className="border p-1">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {earningDetails.map((e, i) => (
+            <tr key={i}>
+              <td className="border p-2 text-center">{i + 1}</td>
+              <td className="border p-2 text-center font-semibold">{e.headName}</td>
+              <td className="border p-2 text-center font-semibold">{e.headType}</td>
+              <td className="border p-2 text-center font-semibold">₹{Number(e.value).toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    {/* Deductions */}
+    <div className="border border-black p-2">
+      <h3 className="text-xl font-semibold mb-2">Deductions</h3>
+      <table className="w-full border border-black text-lg">
+        <thead>
+          <tr className="bg-gray-200">
+            <th className="border p-2">Sl No</th>
+            <th className="border p-2">Head</th>
+            <th className="border p-2">Type</th>
+            <th className="border p-2">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {deductionDetails.map((d, i) => (
+            <tr key={i}>
+              <td className="border p-2 text-center">{i + 1}</td>
+              <td className="border p-2 text-center font-semibold">{d.headName}</td>
+              <td className="border p-2 text-center font-semibold">{d.headType}</td>
+              <td className="border p-2 text-center font-semibold">₹{Number(d.value).toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {/* SUMMARY */}
+  <div className="border border-black p-3 text-lg space-y-2">
+    <p><span className="font-semibold">Gross Salary:</span> ₹{grossSalary.toFixed(2)}</p>
+    <p><span className="font-semibold">Total Deduction:</span> ₹{totalDeduction.toFixed(2)}</p>
+    <p><span className="font-semibold">Net Salary:</span> ₹{netSalary.toFixed(2)}</p>
+    <p><span className="font-semibold">LOP Deduction:</span> ₹{lopAmount.toFixed(2)}</p>
+
+    <h3 className="text-2xl font-semibold mt-2">
+      In-hand Salary: ₹{inHandSalary.toFixed(2)}
+    </h3>
+  </div>
+</div>
+)}
+</>
+
+
   );
 };
 

@@ -11,6 +11,9 @@ import jsPDF from "jspdf";
 const GeneratePaySlip = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  // mode can be 'edit' or 'generate'
+  const mode = location.state?.mode || "generate"; // default to generate
+
 
   // Check if editing
   const editingData = location.state?.editingData || null;
@@ -144,7 +147,7 @@ const handleSave = async () => {
     return;
   }
 
-  const fullName = `${selectedEmployee.salutation} ${selectedEmployee.firstName} ${selectedEmployee.lastName || ""}`.trim();
+  const fullName = `${selectedEmployee.salutation} ${selectedEmployee.firstName} ${selectedEmployee.middleName || ""} ${selectedEmployee.lastName || ""}`.trim();
 
   // Map earnings and deductions to send 'amount' to backend
   const earningsPayload = earningDetails.map(e => ({
@@ -159,42 +162,50 @@ const handleSave = async () => {
     amount: Number(d.value) || 0
   }));
 
+  // Prepare final payload including mobile, email, and summary totals
   const payload = {
     employeeId: selectedEmployee.employeeID,
+    employeeName: fullName,
+    mobile: selectedEmployee.permanentAddress?.mobile || "",
+    email: selectedEmployee.permanentAddress?.email || "",
     month,
     year,
     earnings: earningsPayload,
     deductions: deductionsPayload,
-    payDetails: {
-      grossSalary: Number(grossSalary.toFixed(2)),
-      totalDeduction: Number(totalDeduction.toFixed(2)),
-      netSalary: Number(netSalary.toFixed(2)),
-      lopAmount: Number(lopAmount.toFixed(2)),
-      inHandSalary: Number(inHandSalary.toFixed(2)),
-      monthDays,
-      totalWorkingDays,
-      LOP,
-      leaves
-    }
+    grossSalary: Number(grossSalary.toFixed(2)),
+    totalDeduction: Number(totalDeduction.toFixed(2)),
+    netSalary: Number(netSalary.toFixed(2)),
+    lopAmount: Number(lopAmount.toFixed(2)),
+    inHandSalary: Number(inHandSalary.toFixed(2)),
+    monthDays: Number(monthDays),
+    totalWorkingDays: Number(totalWorkingDays),
+    LOP: Number(LOP),
+    leaves: Number(leaves)
   };
 
   try {
     if (editingData?._id) {
+      // Update existing payslip
       await axios.put(`http://localhost:5001/api/payslips/${editingData._id}`, payload);
       toast.success("Payslip Updated Successfully!");
     } else {
+      // Create new payslip
       await axios.post("http://localhost:5001/api/payslips", payload);
       toast.success("Payslip Generated Successfully!");
     }
-    // Optionally navigate or refresh list
-    // navigate("/PaySlipGenerateEmployeeList");
-  } catch (err) {
+    // Optionally refresh or navigate
+     navigate("/PaySlipGenerateEmployeeList");
+  }catch (err) {
     console.error("Error saving payslip:", err);
-    toast.error("Error saving payslip");
+
+    // Add duplicate error handling from backend
+    if (err.response && err.response.status === 400 && err.response.data.message) {
+      toast.error(err.response.data.message); // Payslip already exists
+    } else {
+      toast.error("Error saving payslip");
+    }
   }
 };
-
-
 
   const TwoColRow = ({ label1, value1, label2, value2 }) => (
      <div className="flex justify-between mb-1 text-xl"> {/* text-xl ensures all text is large */}
@@ -481,6 +492,8 @@ const handleSave = async () => {
             </tbody>
           </table>
           {/* ADDITIONAL FIELDS */}
+            {mode !== "edit" && (
+          <>
               <h4 className="text-lg font-semibold text-white mb-2 pl-2 bg-blue-700 rounded-sm">ADDITIONAL INFO</h4>
               <div className="grid grid-cols-4 gap-4 mb-6 text-sm">
                 <div>
@@ -521,10 +534,12 @@ const handleSave = async () => {
                   />
                 </div>
               </div>
-
-
-          {/* Total Summary and Actions */}
+              </>
+            )}
+                {/* Total Summary and Actions */}
+      
           <div className="flex justify-between items-start mb-6">
+              {mode !== "edit" && (
             <div className="border-2 border-gray-400 rounded-lg p-4 w-80">
               <div className="flex justify-between mb-2">
                 <span className="text-gray-950 font-semibold w-40">Gross Salary:</span>
@@ -555,33 +570,34 @@ const handleSave = async () => {
                 <span className="text-right w-24">₹{inHandSalary.toFixed(2)}</span>
               </div>
             </div>
+           )}
             {/* Buttons */}
             <div className="flex gap-3 mt-36">
               <button
                 onClick={handleSave}
-                className={`px-4 py-1 rounded ${editingData ? "bg-yellow-500 hover:bg-yellow-600" : "bg-blue-600 text-white"}`}
+                className={`px-4 py-1 rounded text-white ${
+                  mode === "edit" ? "bg-yellow-500 hover:bg-yellow-600" : "bg-blue-600 hover:bg-blue-700"
+                }`}
               >
-                {editingData ? "Update" : "Submit"}
-              </button>
-              {/* <button
-                onClick={handlePrint}
-                className="px-4 py-1 rounded bg-green-500 hover:bg-green-600 text-white"
-              >
-                Print
-              </button> */}
-              <button
-                onClick={handleDownloadPDF}
-                className="px-4 py-1 rounded bg-green-500 hover:bg-green-600 text-white"
-              >
-                Download PDF
+                {mode === "edit" ? "Update" : "Submit"}
               </button>
 
+              {/* {mode !== "edit" && (
+                <button
+                  onClick={handleDownloadPDF}
+                  className="px-4 py-1 rounded bg-green-500 hover:bg-green-600 text-white"
+                >
+                  Download PDF
+                </button>
+              )} */}
             </div>
           </div>
+
         </div>
       </div>
+      
     </div>
-
+             
 <div
   id="print-section"
   className="hidden print:block border-2  border-black w-[210mm] max-w-full mx-auto py-4 px-6"
@@ -689,7 +705,6 @@ const handleSave = async () => {
     </h3>
   </div>
 </div>
-
     </>
   );
 };
