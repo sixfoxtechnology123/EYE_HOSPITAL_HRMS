@@ -582,14 +582,14 @@ const handleSave = async () => {
                 {mode === "edit" ? "Update" : "Submit"}
               </button>
 
-              {mode !== "edit" && (
+              {/* {mode !== "edit" && (
                 <button
                   onClick={handleDownloadPDF}
                   className="px-4 py-1 rounded bg-green-500 hover:bg-green-600 text-white"
                 >
                   Download PDF
                 </button>
-              )}
+              )} */}
             </div>
           </div>
 

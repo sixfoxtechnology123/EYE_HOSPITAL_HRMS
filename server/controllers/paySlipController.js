@@ -69,16 +69,6 @@ export const createPaySlip = async (req, res) => {
       amount: Number(d.amount || 0)
     }));
 
-     // Check for duplicate
-    const existingPayslip = await PaySlip.findOne({
-      employeeId: employeeId.toUpperCase(),
-      month,
-      year,
-    });
-    if (existingPayslip) {
-      return res.status(400).json({ message: "Payslip already exists for this employee for this month and year." });
-    }
-
     const newSlip = await PaySlip.create({
       employeeId: employee.employeeID,
       employeeName: `${employee.salutation} ${employee.firstName} ${employee.lastName || ""}`.trim(),
