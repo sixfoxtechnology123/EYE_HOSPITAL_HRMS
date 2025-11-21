@@ -69,6 +69,19 @@ export const createPaySlip = async (req, res) => {
       amount: Number(d.amount || 0)
     }));
 
+
+    //validation
+     const existingPayslip = await PaySlip.findOne({
+      employeeId: employee.employeeID,
+      month,
+      year
+    });
+
+    if (existingPayslip) {
+      return res.status(400).json({ message: "Payslip for this employee, month and year already exists." });
+    }
+
+
     const newSlip = await PaySlip.create({
       employeeId: employee.employeeID,
       employeeName: `${employee.salutation} ${employee.firstName} ${employee.lastName || ""}`.trim(),

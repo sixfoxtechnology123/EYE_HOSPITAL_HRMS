@@ -58,17 +58,17 @@ const DeductionSchema = new mongoose.Schema({
 });
 
 const PayDetailsSchema = new mongoose.Schema({
-  basicPay: { type: Number, default: 0 },
-  pfType: { type: String, default: "" },
+  // basicPay: { type: Number, default: 0 },
+  // pfType: { type: String, default: "" },
   passportNo: { type: String, default: "" },
-  pfNo: { type: String, default: "" },
+  //pfNo: { type: String, default: "" },
   uanNo: { type: String, default: "" },
   panNo: { type: String, default: "" },
   bankName: { type: String, default: "" },
   branch: { type: String, default: "" },
   ifscCode: { type: String, default: "" },
   accountNo: { type: String, default: "" },
-  payLevel: { type: String, default: "" },
+  //payLevel: { type: String, default: "" },
   aadhaarNo: { type: String, default: "" },
 });
 

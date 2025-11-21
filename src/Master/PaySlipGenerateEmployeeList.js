@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../component/Sidebar";
 import toast from "react-hot-toast";
 import BackButton from "../component/BackButton";
-import { FaEdit, FaFileInvoiceDollar, FaPrint } from "react-icons/fa";
+import { FaEye, FaPlusCircle, FaPrint } from "react-icons/fa";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -354,7 +354,7 @@ const fetchLatestPayslip = async (emp) => {
                   }
                   className="text-blue-600 hover:text-blue-800"
                 >
-                  <FaEdit />
+                  <FaEye />
                 </button>
 
                 {/* Generate Button */}
@@ -374,7 +374,7 @@ const fetchLatestPayslip = async (emp) => {
                    className="text-green-600 hover:text-green-800"
                   //className="bg-green-600 hover:bg-green-700 text-white px-2 py-0 rounded text-sm"
                 >
-                  <FaFileInvoiceDollar />
+                  <FaPlusCircle />
                  
                 </button>
 

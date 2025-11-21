@@ -450,7 +450,29 @@ leaveAuthority: getEmployeeName(leaveAuthority),
         <div className="flex-1 p-3 overflow-y-auto">
           <div className="bg-white min-h-screen shadow-lg rounded-lg p-4 w-full">
           {/* ===================== STEP 1 ===================== */}
-         
+
+
+         <div className="flex items-center font-semibold gap-2 border-b border-gray-300 mb-4 pb-2 flex-wrap">
+          {["Personal & Service details", "Education", "Nominees/Medical/Address", "Pay Details", "Pay Structure"].map((s, i) => (
+            <React.Fragment key={i}>
+              <div
+                className={`cursor-pointer px-3 py-0 rounded ${
+                  step === i + 1 ? "bg-blue-600 font-semibold text-white" : "text-black hover:text-blue-600"
+                }`}
+                onClick={() => setStep(i + 1)}
+              >
+                {s}
+              </div>
+              {i < 4 && (
+                <span className="text-gray-400 select-none">→</span>
+              )}
+            </React.Fragment>
+          ))}
+          
+        </div>
+
+
+
           {step === 1 && (
             <>
               <h2 className="text-2xl font-semibold mb-4 text-center text-black">
@@ -1409,17 +1431,17 @@ leaveAuthority: getEmployeeName(leaveAuthority),
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <Input label="Basic Pay (*)" type="number" value={basicPay} onChange={setBasicPay} />
+                {/* <Input label="Basic Pay (*)" type="number" value={basicPay} onChange={setBasicPay} />
 
                 <Select
                   label="PF Type (*)"
                   value={pfType}
                   onChange={setPfType}
                   options={["PF", "NPS","CPF","NA"]}
-                />
+                /> */}
 
                 <Input label="Passport No." value={passportNo} onChange={setPassportNo} />
-                <Input label="PF No." value={pfNo} onChange={setPfNo} />
+                {/* <Input label="PF No." value={pfNo} onChange={setPfNo} /> */}
                 <Input label="UAN No." value={uanNo} onChange={setUanNo} />
                 <Input label="Pan No." value={panNo} onChange={setPanNo} />
 
@@ -1482,12 +1504,12 @@ leaveAuthority: getEmployeeName(leaveAuthority),
                 <Input label="IFSC Code (*)" value={ifscCode} onChange={setIfscCode} />
                 <Input label="Account No. (*)" value={accountNo} onChange={setAccountNo} />
 
-                <Select
+                {/* <Select
                   label="Pay Level / Grade"
                   value={payLevel}
                   onChange={setPayLevel}
                   options={["LEVEL 1", "LEVEL 2", "LEVEL 3", "LEVEL 4"]}
-                />
+                /> */}
 
                 <Input label="Aadhar No." value={aadhaarNo} onChange={setAadhaarNo} />
               </div>

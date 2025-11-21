@@ -398,18 +398,19 @@ const handleSave = async () => {
                     <input
                       type="number"
                       value={row.value}
+                      disabled={mode === "edit"}
                       onChange={(e) => {
                         const updated = [...earningDetails];
                         updated[index].value = e.target.value;
                         setEarningDetails(updated);
                       }}
-                      className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150"
+                      className={`w-full ${mode === "edit" ? "cursor-not-allowed bg-gray-100" : ""} pl-2 pr-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150`}
                     />
                   </td>
                   <td className="border p-2 text-center">
                     <button type="button" disabled onClick={addEarningRow} className="bg-gray-300 text-white px-2 rounded mr-1 cursor-not-allowed ">+</button>
                     {earningDetails.length > 1 && (
-                      <button type="button" onClick={() => setEarningDetails(earningDetails.filter((_, i) => i !== index))} className="bg-red-500 hover:bg-red-600 text-white px-2 rounded">-</button>
+                      <button type="button" disabled={mode === "edit"} onClick={() => setEarningDetails(earningDetails.filter((_, i) => i !== index))} className={`bg-red-500 hover:bg-red-600 text-white px-2 rounded ${mode === "edit" ? "cursor-not-allowed" : ""}`}>-</button>
                     )}
                   </td>
                 </tr>
@@ -473,18 +474,19 @@ const handleSave = async () => {
                     <input
                       type="number"
                       value={row.value}
+                      disabled={mode === "edit"}
                       onChange={(e) => {
                         const updated = [...deductionDetails];
                         updated[index].value = e.target.value;
                         setDeductionDetails(updated);
                       }}
-                      className="w-full pl-2 pr-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150"
+                      className={`w-full ${mode === "edit" ? "cursor-not-allowed bg-gray-100" : ""} pl-2 pr-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-500 transition-all duration-150`}
                     />
                   </td>
                   <td className="border p-2 text-center">
                     <button type="button" disabled onClick={addDeductionRow} className="bg-gray-300 text-white px-2 rounded mr-1 cursor-not-allowed">+</button>
                     {deductionDetails.length > 1 && (
-                      <button type="button" onClick={() => setDeductionDetails(deductionDetails.filter((_, i) => i !== index))} className="bg-red-500 hover:bg-red-600 text-white px-2 rounded">-</button>
+                      <button type="button" disabled={mode === "edit"} onClick={() => setDeductionDetails(deductionDetails.filter((_, i) => i !== index))} className={`bg-red-500 hover:bg-red-600 text-white px-2 rounded ${mode === "edit" ? "cursor-not-allowed" : ""}`}>-</button>
                     )}
                   </td>
                 </tr>
@@ -571,16 +573,14 @@ const handleSave = async () => {
               </div>
             </div>
            )}
-            {/* Buttons */}
+            {mode !== "edit" && (
             <div className="flex gap-3 mt-36">
-              <button
-                onClick={handleSave}
-                className={`px-4 py-1 rounded text-white ${
-                  mode === "edit" ? "bg-yellow-500 hover:bg-yellow-600" : "bg-blue-600 hover:bg-blue-700"
-                }`}
-              >
-                {mode === "edit" ? "Update" : "Submit"}
-              </button>
+             <button
+              onClick={() => handleSave("submit")}
+              className="px-4 py-1 rounded text-white bg-blue-600 hover:bg-blue-700">
+              Submit
+            </button>
+
 
               {/* {mode !== "edit" && (
                 <button
@@ -591,6 +591,7 @@ const handleSave = async () => {
                 </button>
               )} */}
             </div>
+            )}
           </div>
 
         </div>
