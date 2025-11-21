@@ -138,62 +138,63 @@ useEffect(() => {
   // in-hand salary = netSalary - lopAmount
   const inHandSalary = netSalary - lopAmount;
 
+const handleSave = async () => {
+  if (!month || !year) {
+    toast.error("Please select month & year");
+    return;
+  }
 
-  const handleSave = async () => {
-    if (!month || !year) {
-      toast.error("Please select month & year");
-      return;
-    }
+  const fullName = `${selectedEmployee.salutation} ${selectedEmployee.firstName} ${selectedEmployee.lastName || ""}`.trim();
 
-    const fullName = `${selectedEmployee.salutation} ${selectedEmployee.firstName}`.trim();
+  // Map earnings and deductions to send 'amount' to backend
+  const earningsPayload = earningDetails.map(e => ({
+    headName: e.headName,
+    type: e.headType || "FIXED",
+    amount: Number(e.value) || 0
+  }));
 
-    const earningsPayload = earningDetails.map(e => ({
-      headName: e.headName,
-      type: e.headType || "FIXED",
-      amount: Number(e.value) || 0
-    }));
+  const deductionsPayload = deductionDetails.map(d => ({
+    headName: d.headName,
+    type: d.headType || "FIXED",
+    amount: Number(d.value) || 0
+  }));
 
-    const deductionsPayload = deductionDetails.map(d => ({
-      headName: d.headName,
-      type: d.headType || "FIXED",
-      amount: Number(d.value) || 0
-    }));
-
-    const payload = {
-      employeeId: selectedEmployee.employeeID,
-      employeeName: fullName,
-      mobile: selectedEmployee.permanentAddress?.mobile || "",
-      email: selectedEmployee.permanentAddress?.email || "",
-      month,
-      year,
-      earnings: earningsPayload,
-      deductions: deductionsPayload,
+  const payload = {
+    employeeId: selectedEmployee.employeeID,
+    month,
+    year,
+    earnings: earningsPayload,
+    deductions: deductionsPayload,
+    payDetails: {
       grossSalary: Number(grossSalary.toFixed(2)),
       totalDeduction: Number(totalDeduction.toFixed(2)),
       netSalary: Number(netSalary.toFixed(2)),
       lopAmount: Number(lopAmount.toFixed(2)),
       inHandSalary: Number(inHandSalary.toFixed(2)),
-      monthDays,         // new
-      totalWorkingDays,  // new
-      LOP,          
-      leaves,
-    };
-
-    try {
-      if (editingData?._id) {
-        await axios.put(`http://localhost:5001/api/payslips/${editingData._id}`, payload);
-        toast.success("Payslip Updated Successfully!");
-         
-      } else {
-        await axios.post("http://localhost:5001/api/payslips", payload);
-        toast.success("Payslip Generated Successfully!");
-      }
-      //navigate("/PaySlipGenerateEmployeeList");
-    } catch (err) {
-      console.error(err);
-      toast.error("Error saving payslip");
+      monthDays,
+      totalWorkingDays,
+      LOP,
+      leaves
     }
   };
+
+  try {
+    if (editingData?._id) {
+      await axios.put(`http://localhost:5001/api/payslips/${editingData._id}`, payload);
+      toast.success("Payslip Updated Successfully!");
+    } else {
+      await axios.post("http://localhost:5001/api/payslips", payload);
+      toast.success("Payslip Generated Successfully!");
+    }
+    // Optionally navigate or refresh list
+    // navigate("/PaySlipGenerateEmployeeList");
+  } catch (err) {
+    console.error("Error saving payslip:", err);
+    toast.error("Error saving payslip");
+  }
+};
+
+
 
   const TwoColRow = ({ label1, value1, label2, value2 }) => (
      <div className="flex justify-between mb-1 text-xl"> {/* text-xl ensures all text is large */}
