@@ -293,7 +293,7 @@ const fetchLatestPayslip = async (emp) => {
               className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 flex items-center gap-1"
               onClick={handlePrintAllOnePDF} 
             >
-              <FaPrint /> Print All
+              <FaPrint /> Print Allllll
             </button>
             </div>
             <div className="ml-auto">
