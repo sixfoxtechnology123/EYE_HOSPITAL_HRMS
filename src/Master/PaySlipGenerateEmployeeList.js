@@ -7,6 +7,7 @@ import BackButton from "../component/BackButton";
 import { FaEye, FaPlusCircle, FaPrint } from "react-icons/fa";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import EyeLogo from "../assets/EyeLogo.png";
 
 
 const PaySlipGenerateEmployeeList = () => {
@@ -410,21 +411,37 @@ const fetchLatestPayslip = async (emp) => {
 {selectedEmployee && (
   <div
     id="print-section"
-    className="hidden print:block border-2 border-black w-[210mm] max-w-full mx-auto py-4 px-6"
+    className="hidden print:block border-2 border-black w-[210mm] max-w-full mx-auto py-4 px-3"
     style={{ fontFamily: "sans-serif", fontSize: "14px" }}
   >
-  {/* HEADER */}
-  <div className="text-center mb-1">
-    <h1 className="text-3xl font-semibold">EYE HOSPITAL</h1>
-    {/* <p className="text-base">123, Sample Road, India — 700001</p> */}
-    <p className="text-base">Address</p>
+  <div className="flex items-center justify-between mb-2 px-4">
+  {/* Left Logo */}
+  <img 
+    src={EyeLogo}
+    alt="Left Logo"
+     className="w-24 h-24 rounded-full object-cover ml-1"
+  />
+
+  {/* Center Title + Address */}
+  <div className="text-center flex-1">
+    <h1 className="text-3xl font-semibold">Netrapedia Eye Hospital</h1>
+    <p className="text-base">
+      1/32 Sahid Nagar, PO - Dhakuria, PS - Garfa</p>
+      <p className="text-base">Kolkata - 700031, West Bengal</p>
   </div>
 
-  <div className="text-center mb-4">
-    <h2 className="text-2xl font-semibold">PAY SLIP</h2>
-    <p className="font-semibold text-lg">{month} - {year}</p>
-  </div>
+  {/* Right Logo */}
+  <img 
+    src={EyeLogo}
+    alt="Right Logo"
+     className="w-24 h-24 rounded-full object-cover mr-1"
+  />
+</div>
 
+<div className="text-center mb-4">
+  <h2 className="text-2xl font-semibold">PAY SLIP</h2>
+  {/* <p className="font-semibold text-lg">{month} - {year}</p> */}
+</div>
 
 <div className="border border-black p-2 mb-4">
 <div className="mb-4 grid grid-cols-3 gap-4 items-start text-xl">
