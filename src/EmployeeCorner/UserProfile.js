@@ -47,19 +47,19 @@ const UserProfile = () => {
   }
 
   // Helper to format date
-  const formatDate = (date) => (date ? new Date(date).toLocaleDateString() : "N/A");
+  const formatDate = (date) => (date ? new Date(date).toLocaleDateString() : "--");
 // Inside your UserProfile component, before return
 const TwoColRow = ({ label1, value1, label2, value2 }) => {
   return (
     <div className="flex text-sm">
       <div className="flex flex-1">
         <div className="min-w-[160px] font-semibold">{label1}</div>
-        <div>: {value1 || "N/A"}</div>
+        <div>: {value1 || "--"}</div>
       </div>
       {label2 && (
         <div className="flex flex-1">
           <div className="min-w-[150px] font-semibold">{label2}</div>
-          <div>: {value2 || "N/A"}</div>
+          <div>: {value2 || "--"}</div>
         </div>
       )}
     </div>
@@ -81,10 +81,10 @@ const TwoColRow = ({ label1, value1, label2, value2 }) => {
                 {employee?.firstName} {employee?.middleName} {employee?.lastName}
               </h2>
               <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                <p className="text-lg font-semibold">{employee?.designationName || "N/A"}</p>
-                <p className="text-lg font-semibold">{employee?.departmentName || "N/A"}</p>
-                <p className="text-lg font-semibold">{employee?.permanentAddress?.mobile || "N/A"}</p>
-                <p className="text-lg font-semibold">{employee?.permanentAddress?.email || "N/A"}</p>
+                <p className="text-lg font-semibold">{employee?.designationName || "--"}</p>
+                <p className="text-lg font-semibold">{employee?.departmentName || "--"}</p>
+                <p className="text-lg font-semibold">{employee?.permanentAddress?.mobile || "--"}</p>
+                <p className="text-lg font-semibold">{employee?.permanentAddress?.email || "--"}</p>
               </div>
             </div>
             <div className="flex flex-col items-center">
@@ -154,20 +154,20 @@ const TwoColRow = ({ label1, value1, label2, value2 }) => {
             <div className="bg-green-50 border rounded-xl p-4 shadow-sm">
               <h3 className="font-semibold text-lg mb-3 border-b pb-1">💰 Pay Details</h3>
               <TwoColRow label1="Basic Pay" value1={`₹${employee?.payDetails?.basicPay || "0"}`} />
-              <TwoColRow label1="PF Type" value1={employee?.payDetails?.pfType || "N/A"} />
-              <TwoColRow label1="Passport No." value1={employee?.payDetails?.passportNo || "N/A"} />
-              <TwoColRow label1="PF No." value1={employee?.payDetails?.pfNo || "N/A"} />
-              <TwoColRow label1="UAN No." value1={employee?.payDetails?.uanNo || "N/A"} />
-              <TwoColRow label1="PAN No." value1={employee?.payDetails?.panNo || "N/A"} />
-              <TwoColRow label1="Pay Level / Grade" value1={employee?.payDetails?.payLevel || "N/A"} />
-              <TwoColRow label1="Aadhaar No." value1={employee?.payDetails?.aadhaarNo || "N/A"} />
+              <TwoColRow label1="PF Type" value1={employee?.payDetails?.pfType || "--"} />
+              <TwoColRow label1="Passport No." value1={employee?.payDetails?.passportNo || "--"} />
+              <TwoColRow label1="PF No." value1={employee?.payDetails?.pfNo || "--"} />
+              <TwoColRow label1="UAN No." value1={employee?.payDetails?.uanNo || "--"} />
+              <TwoColRow label1="PAN No." value1={employee?.payDetails?.panNo || "--"} />
+              <TwoColRow label1="Pay Level / Grade" value1={employee?.payDetails?.payLevel || "--"} />
+              <TwoColRow label1="Aadhaar No." value1={employee?.payDetails?.aadhaarNo || "--"} />
             </div>
 
           {/* Authority Details */}
          <div className="bg-yellow-50 border rounded-xl p-4 shadow-sm">
            <h3 className="font-semibold text-lg mb-3 border-b pb-1">🧾 Authority Details</h3>
-              <TwoColRow  label1="Reporting Authority" value1={employee?.reportingAuthority || "N/A"} />
-              <TwoColRow label1="Leave Sanction Authority" value1={employee?.leaveAuthority || "N/A"} />
+              <TwoColRow  label1="Reporting Authority" value1={employee?.reportingAuthority || "--"} />
+              <TwoColRow label1="Leave Sanction Authority" value1={employee?.leaveAuthority || "--"} />
             </div>
             
            {/* Bank Details */}
@@ -176,19 +176,19 @@ const TwoColRow = ({ label1, value1, label2, value2 }) => {
 
                   <TwoColRow
                     label1="Bank Name"
-                    value1={employee?.payDetails?.bankName || "N/A"}
+                    value1={employee?.payDetails?.bankName || "--"}
                   />
                   <TwoColRow  
                     label1="Branch"
-                    value1={employee?.payDetails?.branch || "N/A"}/>
+                    value1={employee?.payDetails?.branch || "--"}/>
 
                   <TwoColRow
                     label1="IFSC Code"
-                    value1={employee?.payDetails?.ifscCode || "N/A"}
+                    value1={employee?.payDetails?.ifscCode || "--"}
                   />
                   <TwoColRow
                     label1="Account No."
-                    value1={employee?.payDetails?.accountNo || "N/A"}
+                    value1={employee?.payDetails?.accountNo || "--"}
                   />
               </div>
 
